@@ -16,6 +16,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 
 namespace DatingApp.API {
     public class Startup {
@@ -27,7 +28,7 @@ namespace DatingApp.API {
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices (IServiceCollection services) {
             services.AddDbContext<DataContext>(x => x.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
-            services.AddMvc ().SetCompatibilityVersion (CompatibilityVersion.Version_2_2);
+            services.AddMvc().SetCompatibilityVersion (CompatibilityVersion.Version_2_2);
             services.AddCors();
             services.AddScoped<IAuthRepository, AuthRepository>();
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -55,7 +56,8 @@ namespace DatingApp.API {
                         IExceptionHandlerFeature error = ctx.Features.Get<IExceptionHandlerFeature>();
                         if(error != null){
                             ctx.Response.AddApplicationError(error.Error.Message);
-                            await ctx.Response.WriteAsync(error.Error.Message);
+                            string result = JsonConvert.SerializeObject(new { error = error.Error.Message });
+                            await ctx.Response.WriteAsync(result);
                         }
                     });
                 });
